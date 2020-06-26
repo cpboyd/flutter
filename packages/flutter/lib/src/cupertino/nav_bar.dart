@@ -578,6 +578,7 @@ class CupertinoSliverNavigationBar extends StatefulWidget {
     this.actionsForegroundColor,
     this.transitionBetweenRoutes = true,
     this.heroTag = _defaultHeroTag,
+    this.large = true,
   }) : assert(automaticallyImplyLeading != null),
        assert(automaticallyImplyTitle != null),
        assert(
@@ -610,6 +611,9 @@ class CupertinoSliverNavigationBar extends StatefulWidget {
   /// This parameter must either be non-null or the route must have a title
   /// ([CupertinoPageRoute.title]) and [automaticallyImplyTitle] must be true.
   final Widget largeTitle;
+
+  /// Force collapsed state if false.
+  final bool large;
 
   /// {@macro flutter.cupertino.navBar.leading}
   ///
@@ -708,7 +712,7 @@ class _CupertinoSliverNavigationBarState extends State<CupertinoSliverNavigation
       userTrailing: widget.trailing,
       userLargeTitle: widget.largeTitle,
       padding: widget.padding,
-      large: true,
+      large: widget.large,
     );
 
     return _wrapActiveColor(
@@ -775,11 +779,11 @@ class _LargeTitleNavigationBarSliverDelegate
   double get minExtent => persistentHeight;
 
   @override
-  double get maxExtent => persistentHeight + _kNavBarLargeTitleHeightExtension;
+  double get maxExtent => components.large ? (persistentHeight + _kNavBarLargeTitleHeightExtension) : persistentHeight;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final bool showLargeTitle = shrinkOffset < maxExtent - minExtent - _kNavBarShowLargeTitleThreshold;
+    final bool showLargeTitle = components.large && shrinkOffset < maxExtent - minExtent - _kNavBarShowLargeTitleThreshold;
 
     final _PersistentNavigationBar persistentNavigationBar =
         _PersistentNavigationBar(
@@ -1015,7 +1019,7 @@ class _NavigationBarStaticComponents {
     @required Widget userTrailing,
     @required Widget userLargeTitle,
     @required EdgeInsetsDirectional padding,
-    @required bool large,
+    @required this.large,
   }) : leading = createLeading(
          leadingKey: keys.leadingKey,
          userLeading: userLeading,
@@ -1178,9 +1182,7 @@ class _NavigationBarStaticComponents {
   }) {
     Widget middleContent = userMiddle;
 
-    if (large) {
       middleContent ??= userLargeTitle;
-    }
 
     middleContent ??= _derivedTitle(
       automaticallyImplyTitle: automaticallyImplyTitle,
@@ -1196,6 +1198,7 @@ class _NavigationBarStaticComponents {
       child: middleContent,
     );
   }
+  final bool large;
 
   final KeyedSubtree trailing;
   static KeyedSubtree createTrailing({
@@ -1233,9 +1236,6 @@ class _NavigationBarStaticComponents {
     @required bool automaticImplyTitle,
     @required ModalRoute<dynamic> route,
   }) {
-    if (!large) {
-      return null;
-    }
 
     final Widget largeTitleContent = userLargeTitle ?? _derivedTitle(
       automaticallyImplyTitle: automaticImplyTitle,
